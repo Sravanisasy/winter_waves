@@ -1,0 +1,103 @@
+import pygame
+import numpy as np
+import random
+
+class ExtendedHolidayMelody:
+    def __init__(self):
+        pygame.mixer.init(frequency=44100, size=-16, channels=2)
+        pygame.init()
+    
+    def generate_tone(self, frequency, duration):
+        sample_rate = 44100
+        n_samples = int(sample_rate * duration)
+        
+        buf = np.zeros((n_samples, 2), dtype=np.float32)
+        max_amplitude = 32767.0
+        
+        for s in range(n_samples):
+            t = float(s) / sample_rate
+            
+            # More complex waveform with multiple harmonics
+            tone = (
+                np.sin(2 * np.pi * frequency * t) +  # Base tone
+                0.5 * np.sin(2 * np.pi * (frequency * 2) * t) +  # Second harmonic
+                0.25 * np.sin(2 * np.pi * (frequency * 3) * t)  # Third harmonic
+            )
+            
+            # Smooth envelope with slight randomization
+            envelope = np.sin(np.pi * s / n_samples)
+            envelope *= (1 + random.uniform(-0.05, 0.05))  # Add slight variation
+            
+            sample_value = tone * envelope * max_amplitude
+            sample_value = np.clip(sample_value, -max_amplitude, max_amplitude)
+            
+            buf[s][0] = sample_value
+            buf[s][1] = sample_value
+        
+        buf = buf.astype(np.int16)
+        return pygame.sndarray.make_sound(buf)
+    
+    def play_extended_jingle_bells(self, repetitions=4):
+        # Extended Jingle Bells melody with variations
+        base_melody = [
+            # Verse 1
+            (392, 0.4), (392, 0.4), (392, 0.8),
+            (392, 0.4), (392, 0.4), (392, 0.8),
+            (392, 0.4), (466, 0.4), (330, 0.6),
+            (349, 0.2), (392, 0.8),
+            
+            # Verse 2 with slight variation
+            (415, 0.4), (415, 0.4), (415, 0.6),
+            (392, 0.2), (392, 0.4),
+            (466, 0.4), (392, 0.4),
+            (349, 0.4), (330, 0.4),
+            
+            # Bridge section
+            (294, 0.4), (294, 0.4), (392, 0.6),
+            (349, 0.2), (330, 0.4),
+            (294, 0.4), (262, 0.4), (330, 0.8)
+        ]
+        
+        # Alternate melody for variation
+        alternate_melody = [
+            (392, 0.3), (392, 0.3), (392, 0.6),
+            (466, 0.4), (330, 0.5),
+            (349, 0.3), (392, 0.7),
+            (415, 0.4), (392, 0.4),
+            (349, 0.3), (330, 0.5)
+        ]
+        
+        # Play multiple times with variations
+        for _ in range(repetitions):
+            # Play main melody
+            for freq, duration in base_melody:
+                try:
+                    tone = self.generate_tone(freq, duration)
+                    tone.play()
+                    pygame.time.wait(int(duration * 1000))
+                except Exception as e:
+                    print(f"Error playing tone {freq}: {e}")
+            
+            # Add some variation with alternate melody
+            for freq, duration in alternate_melody:
+                try:
+                    tone = self.generate_tone(freq, duration)
+                    tone.play()
+                    pygame.time.wait(int(duration * 1000))
+                except Exception as e:
+                    print(f"Error playing tone {freq}: {e}")
+        
+        # Ensure sound completes
+        pygame.time.wait(2000)
+
+def main():
+    try:
+        holiday_melody = ExtendedHolidayMelody()
+        holiday_melody.play_extended_jingle_bells(repetitions=3)
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    finally:
+        pygame.quit()
+
+if __name__ == "__main__":
+    main()
